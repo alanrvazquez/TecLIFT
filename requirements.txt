@@ -2,3 +2,10 @@ pandas
 seaborn
 dash
 gunicorn
+scikit-learn
+plotly
+statsmodels
+math
+numpy
+plotly
+requests
