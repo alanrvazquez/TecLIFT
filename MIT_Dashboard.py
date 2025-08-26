@@ -13,7 +13,6 @@ import numpy as np
 import plotly as py
 import plotly.express as px
 import requests
-!pip install dash
 from dash import Dash, html, dcc, Input, Output
 
 clean_nan_primary_data=pd.read_excel("clean_nan_primary_data.xlsx") # Read the data (MIT Database) from excel using pandas
@@ -64,6 +63,7 @@ df = clean_nan_primary_data.copy() # I do not know why that works, but I will le
 
 # Create the app
 app = Dash(__name__)
+server = app.server
 
 # Get unique campus values
 campus_options = df['Campus'].dropna().unique()
