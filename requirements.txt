@@ -1,0 +1,11 @@
+pandas
+seaborn
+matplotlib.pyplot
+sklearn
+statsmodels.api
+math
+numpy
+plotly
+plotly.express
+requests
+dash

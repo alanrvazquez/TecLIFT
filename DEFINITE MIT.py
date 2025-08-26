@@ -13,11 +13,13 @@ import numpy as np
 import plotly as py
 import plotly.express as px
 import requests
+!pip install dash
 from dash import Dash, html, dcc, Input, Output
 
-clean_nan_primary_data=pd.read_excel("datasets/clean_nan_primary_data.xlsx") # Read the data (MIT Database) from excel using pandas
+clean_nan_primary_data=pd.read_excel("clean_nan_primary_data.xlsx") # Read the data (MIT Database) from excel using pandas
 
-average_data = pd.read_excel("datasets/Average_AGEB_STATE.xlsx") # Read the data (INEGI averaged AGEBS Database) from excel using pandas
+
+average_data = pd.read_excel("Average.xlsx") # Read the data (INEGI averaged AGEBS Database) from excel using pandas
 average_data["Estado"] = average_data["Estado"].replace({"Estado de México": "México"})
 
 clean_nan_primary_data['Campus'] = clean_nan_primary_data['Campus'].astype("category")
@@ -61,7 +63,7 @@ mx_regions_geo = requests.get(geojson_url).json()
 df = clean_nan_primary_data.copy() # I do not know why that works, but I will leave it like that.
 
 # Create the app
-app = Dash()
+app = Dash(__name__)
 
 # Get unique campus values
 campus_options = df['Campus'].dropna().unique()
@@ -139,7 +141,7 @@ app.layout = html.Div([
         }),
 
         html.Div([
-            html.H2("Pie Chart", style={"fontWeight": "bold", "marginBottom": "10px"}),
+            html.H2("¿Qué tanto impactan a tu negocio...?", style={"fontWeight": "bold", "marginBottom": "10px"}),
             dcc.Graph(id="pie-graph")
         ], style={
             "backgroundColor": "#f9f9f9",
@@ -154,32 +156,80 @@ app.layout = html.Div([
         })
     ], style={"width": "100%", "display": "flex", "justifyContent": "space-between"}),
 
+    html.Div([
+        html.H2("Panorama Nacional de Micronegocios", style={"fontWeight": "bold", "textAlign": "center"}),
+
         html.Div([
-                html.H2("Panorama Nacional de Micronegocios", style={"fontWeight": "bold", "textAlign": "center"}),
+            html.Label("Selecciona una variable:", style={"fontWeight": "bold", "fontFamily": "Segoe UI"}),
+            dcc.Dropdown(
+                id="map-variable-dropdown",
+                options=[{"label": k, "value": v} for k, v in map_variable_options.items()],
+                value="Negocios por estado",
+                clearable=False,
+                style={"width": "400px", "margin": "auto"}
+            )
+        ], style={"textAlign": "center", "marginBottom": "20px"}),
+
+        dcc.Graph(id="map-graph", style={"height": "600px"})
+    ], style={
+        "backgroundColor": "#f9f9f9",
+        "padding": "20px",
+        "borderRadius": "12px",
+        "boxShadow": "0 4px 6px rgba(0,0,0,0.1)",
+        "fontFamily": "Segoe UI",
+        "width": "90%",
+        "margin": "40px auto 20px auto"
+    }),
+
+    # Footer
+    html.Div([
+        html.Hr(style={"marginTop": "40px", "borderTop": "1px solid #ccc"}),
+
+        html.Div([
+            html.Div([
+                html.Img(src="assets/antonio.jpeg", style={
+                    "width": "140px", "height": "140px",
+                    "borderRadius": "50%", "objectFit": "cover",
+                    "marginBottom": "10px"
+                }),
+                html.P("Antonio Fonseca", style={"fontWeight": "bold", "margin": "0"}),
+                html.P([
+                    "Bachelor in Industrial Engineering", html.Br(),
+                    "with a minor in Systems"
+                ], style={"fontSize": "0.9em", "color": "#555", "margin": "0"})
+            ], style={"textAlign": "center"}),
+
+            html.Div([
+                html.Img(src="assets/alejandro.jpeg", style={
+                    "width": "140px", "height": "140px",
+                    "borderRadius": "50%", "objectFit": "cover",
+                    "marginBottom": "10px"
+                }),
+                html.P("Alejandro Toledo", style={"fontWeight": "bold", "margin": "0"}),
+                html.P([
+                    "Bachelor in Industrial Engineering", html.Br(),
+                    "with a minor in Systems"
+                ], style={"fontSize": "0.9em", "color": "#555", "margin": "0"})
+            ], style={"textAlign": "center"}),
+
+            html.Div([
+                html.Img(src="assets/profesor.jpg", style={
+                    "width": "120px", "height": "120px",
+                    "borderRadius": "50%", "objectFit": "cover",
+                    "marginBottom": "10px"
+                }),
+                html.P("Dr. Alan Vázquez", style={"fontWeight": "bold", "margin": "0"}),
+                html.P("Supervising Professor", style={"fontSize": "0.85em", "color": "#777", "margin": "0"})
+            ], style={"textAlign": "center"})
+        ], style={
+            "display": "flex",
+            "justifyContent": "center",
+            "gap": "80px",
+            "padding": "30px 0"
+        })
+    ], style={"fontFamily": "Segoe UI", "backgroundColor": "#f9f9f9"})
+], style={"padding": "40px", "backgroundColor": "#ffffff"})
     
-                html.Div([
-                    html.Label("Selecciona una variable:", style={"fontWeight": "bold", "fontFamily": "Segoe UI"}),
-                    dcc.Dropdown(
-                        id="map-variable-dropdown",
-                        options=[{"label": k, "value": v} for k, v in map_variable_options.items()],
-                        value="Negocios por estado",
-                        clearable=False,
-                        style={"width": "400px", "margin": "auto"}
-                    )
-                ], style={"textAlign": "center", "marginBottom": "20px"}),
-            
-                dcc.Graph(id="map-graph", style={"height": "600px"})
-            ], style={
-                "backgroundColor": "#f9f9f9",
-                "padding": "20px",
-                "borderRadius": "12px",
-                "boxShadow": "0 4px 6px rgba(0,0,0,0.1)",
-                "fontFamily": "Segoe UI",
-                "width": "90%",
-                "margin": "40px auto 20px auto"
-            })
-    
-    ], style={"padding": "40px", "backgroundColor": "#ffffff"})
 
 # Callbacks
 @app.callback(
@@ -209,11 +259,39 @@ def update_charts(selected_campus):
         font=dict(family="Segoe UI")
     )
 
-    fig2 = px.pie(
-        count_by_type,
-        values="Count",
-        names="Tipo de negocio",
-        title=f"Distribución de negocio en {selected_campus}"
+    # Impacto de crimen, crédito y competencia (nuevo gráfico)
+    impact_columns = [
+        "Qué tanto impacta a tu negocio: - El crimen",
+        "Qué tanto impacta a tu negocio: - La falta de crédito",
+        "Qué tanto impacta a tu negocio: - La competencia"
+    ]
+
+    impact_data = (
+        filtered_df[impact_columns]
+        .melt(var_name="Factor", value_name="Impacto")
+        .groupby(["Impacto", "Factor"])
+        .size()
+        .reset_index(name="Número de negocios")
+    )
+
+    # Aseguramos orden lógico de categorías
+    categoria_ordenada = ["Nada", "Poco", "Algo", "Moderado", "Mucho"]
+    impact_data["Impacto"] = pd.Categorical(impact_data["Impacto"], categories=categoria_ordenada, ordered=True)
+    impact_data = impact_data.sort_values(["Impacto", "Factor"])
+
+    fig2 = px.bar(
+        impact_data,
+        x="Impacto",
+        y="Número de negocios",
+        color="Factor",
+        barmode="group",
+        title=f"Percepción del impacto externo en {selected_campus}"
+    )
+
+    fig2.update_layout(
+        font=dict(family="Segoe UI"),
+        xaxis_title="Nivel de impacto",
+        yaxis_title="Número de negocios"
     )
 
     return fig1, fig2
